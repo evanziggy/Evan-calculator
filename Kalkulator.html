@@ -4,7 +4,144 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Evan Calculator</title>
-    <link rel="stylesheet" href="kalkulator.css">
+    <style>
+      * {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    display: flex;
+    flex-direction: colum;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+
+.calculator {
+    background: white;
+    border-radius: 20px;
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+    padding: 20px;
+    width: 100%;
+    max-width: 400px;
+}
+
+.display {
+    margin-bottom: 20px;
+}
+
+#display {
+    width: 100%;
+    padding: 20px;
+    font-size: 2.5rem;
+    text-align: right;
+    border: 2px solid #e0e0e0;
+    border-radius: 10px;
+    background: #f5f5f5;
+    font-weight: bold;
+    color: #333;
+    transition: border-color 0.3s;
+}
+
+#display:focus {
+    outline: none;
+    border-color: #667eea;
+}
+
+.buttons {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 10px;
+}
+
+.btn {
+    padding: 20px;
+    font-size: 1.5rem;
+    border: none;
+    border-radius: 10px;
+    cursor: pointer;
+    font-weight: bold;
+    transition: all 0.2s;
+}
+
+.btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+}
+
+.btn:active {
+    transform: translateY(0);
+}
+
+.btn.number {
+    background: #f5f5f5;
+    color: #333;
+    border: 2px solid #e0e0e0;
+}
+
+.btn.number:hover {
+    background: #e0e0e0;
+}
+
+.btn.operator {
+    background: #667eea;
+    color: white;
+}
+
+.btn.operator:hover {
+    background: #5568d3;
+}
+
+.btn.equals {
+    background: #48bb78;
+    color: white;
+    grid-column: span 1;
+}
+
+.btn.equals:hover {
+    background: #38a169;
+}
+
+.btn.clear {
+    background: #f56565;
+    color: white;
+}
+
+.btn.clear:hover {
+    background: #e53e3e;
+}
+
+.btn.delete {
+    background: #ed8936;
+    color: white;
+    font-size: 1rem;
+}
+
+.btn.delete:hover {
+    background: #dd6b20;
+}
+
+@media (max-width: 480px) {
+    .calculator {
+        padding: 15px;
+    }
+
+    #display {
+        font-size: 2rem;
+        padding: 15px;
+    }
+
+    .btn {
+        padding: 15px;
+        font-size: 1.2rem;
+    }
+}
+
+    </style>
 </head>
 <body>
   
@@ -37,6 +174,112 @@
             <button class="btn number" onclick="appendNumber('.')">.</button>
         </div>
     </div>
-    <script src="kalkulator.js"></script>
+    <script>
+      let display = document.getElementById('display');
+let currentInput = '';
+let operator = null;
+let previousValue = null;
+
+function appendNumber(num) {
+    // Prevent multiple decimal points
+    if (num === '.' && currentInput.includes('.')) {
+        return;
+    }
+    currentInput += num;
+    updateDisplay();
+}
+
+function appendOperator(op) {
+    if (currentInput === '') return;
+    
+    if (operator !== null && previousValue !== null) {
+        calculate();
+    }
+    
+    operator = op;
+    previousValue = currentInput;
+    currentInput = '';
+}
+
+function calculate() {
+    if (operator === null || previousValue === null || currentInput === '') {
+        return;
+    }
+    
+    let result;
+    const prev = parseFloat(previousValue);
+    const current = parseFloat(currentInput);
+    
+    switch (operator) {
+        case '+':
+            result = prev + current;
+            break;
+        case '-':
+            result = prev - current;
+            break;
+        case '*':
+            result = prev * current;
+            break;
+        case '/':
+            if (current === 0) {
+                display.value = 'Error: Division by 0';
+                currentInput = '';
+                operator = null;
+                previousValue = null;
+                return;
+            }
+            result = prev / current;
+            break;
+        default:
+            return;
+    }
+    
+    // Round to avoid floating point errors
+    result = Math.round(result * 100000000) / 100000000;
+    currentInput = result.toString();
+    operator = null;
+    previousValue = null;
+    updateDisplay();
+}
+
+function clearDisplay() {
+    currentInput = '';
+    operator = null;
+    previousValue = null;
+    updateDisplay();
+}
+
+function deleteLast() {
+    currentInput = currentInput.slice(0, -1);
+    updateDisplay();
+}
+
+function updateDisplay() {
+    display.value = currentInput || '0';
+}
+
+// Keyboard support
+document.addEventListener('keydown', (e) => {
+    if (e.key >= '0' && e.key <= '9') appendNumber(e.key);
+    if (e.key === '.') appendNumber('.');
+    if (e.key === '+') appendOperator('+');
+    if (e.key === '-') appendOperator('-');
+    if (e.key === '*') appendOperator('*');
+    if (e.key === '/') {
+        e.preventDefault();
+        appendOperator('/');
+    }
+    if (e.key === 'Enter') {
+        e.preventDefault();
+        calculate();
+    }
+    if (e.key === 'Backspace') {
+        e.preventDefault();
+        deleteLast();
+    }
+    if (e.key === 'Escape') clearDisplay();
+});
+
+    </script>
 </body>
 </html>
